@@ -1,0 +1,51 @@
+#Barco et al. 2019 Nat Commun
+
+###
+
+#Code to visualize the CYP82C2 homology model in MacPyMOL  
+#After loading the Phyre2-generated homology model PDB file, residues are colored based on Consurf score:
+hide lines,
+show cartoon
+color 0x0000FF #most conserved Conserv score (blue) from -0.511 to 0.225
+color 0xFF0000, resi 241+406+206 #least conserved (red) score >5.37
+color 0xFF3F3F, resi #4.635-5.370
+color 0xFF7F7F, resi 520+489 #3.900-4.635
+color 0xFFBFBF, resi 371+242+352+15+484 #3.165-3.900
+color 0xFFFFFF, resi 172+287+405+49+492+519 #2.430-3.165
+color 0xBFBFFF, resi 191+217+29+188+14+239+257+115+326+73+215+341+161+442+422+323+160+491 #1.695-2.430
+color 0x7F7FFF, resi 180+281+68+11+103+410+291+156+504+48+205+5+517+385+162+256+245+299+317+20+9+304+479+522+243+6+465+334+402+158+17+125+496+187+436+403+425+481+65+180+281 #0.960-1.695
+color 0x3F3FFF, resi 77+498+514+322+4+312+327+7+208+309+325+3+105+211+308+135+398+428+267+79+346+19+511+506+279+175+307+136+176+186+10+104+394+159+228+192+471+149+167+276+356+124+485+226+34+82+53+2+114+221+411+358+357+90+348+220+210+184+426+223+173+128+212+209+148+169+218+28+518+366+390+275 #next most conserved after blue (light blue) 0.225-0.960
+bg_col white
+
+###
+
+#Code to conduct statistics in R 
+#example csv file
+gen,camalexin
+Col,12.00
+Col,16.36
+Col,7.71
+Col,7.01
+rpm1,1.21
+rpm1,2.74
+rpm1,1.56
+
+#load csv file
+Dataset <- 
+read.table("path/example.csv", 
+header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)
+
+#Two-tailed t test
+PTT=pairwise.t.test(Dataset$Cam, Dataset$gen, p.adjust.method="none", paired=F, pool.sd=F)$p.value 
+PTT=rev(PTT[which(!is.na(as.vector((PTT))))])
+library(multcompView) #package for getting in letter format (if applicable)
+names(PTT)<-rev(rownames(TukeyHSD(aov(c(Dataset$Cam)~gen,data=Dataset))$gen)) #TukeyHSD is employed here to organize names, not to do actual test
+MCL=multcompLetters(PTT[c(order(match(gsub("-.*","",names(PTT)), unique(Dataset[c(order(Dataset$Cam)),1]))))], threshold=0.05)
+MCL1=MCL$Letters[order(match(names(MCL$Letters), as.character(unique(Dataset$gen))))]
+
+#One-factor ANOVA coupled to Tukey's test
+TKT=rev(TukeyHSD(aov(Dataset$Cam~Dataset$gen))$`Dataset$gen`[,4])
+library(multcompView)
+names(TKT)<-rev(rownames(TukeyHSD(aov(c(Dataset$Cam)~gen,data=Dataset))$gen))
+MCL=multcompLetters(TKT[c(order(match(gsub("-.*","",names(TKT)), unique(Dataset[c(order(Dataset$Cam)),1]))))], threshold=0.05)
+MCL1=MCL$Letters[order(match(names(MCL$Letters), as.character(unique(Dataset$gen))))]
